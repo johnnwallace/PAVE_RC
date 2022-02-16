@@ -8,9 +8,10 @@ CTS = Pin(29, Pin.IN)  # CTS pin
 txPin = Pin(21, Pin.OUT)  # tx pin
 rxPin = Pin(22, Pin.IN)  # rx pin
 MODE_IND = Pin(24, Pin.IN)
-
 uart = UART(1, 9600, tx=txPin, rx=rxPin)  # initialize UART
 
+# loop:
+# while transmitArray(data) == False:
 
 def configure():
     if MODE_IND.value == 0:
