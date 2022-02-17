@@ -50,7 +50,7 @@ def generateRandom():
 
 # Transmit number to other pico
 def transmitNumber():
-    num = generateRandom
+    num = generateRandom()
     transmitData(num)
     print(num)
 
