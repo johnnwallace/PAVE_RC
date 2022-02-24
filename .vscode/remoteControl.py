@@ -16,6 +16,7 @@ def readRemote(controlString):
 
     return command
 
+
 # autoCommand are values from autonomous algorithm assuming other people will decide whether this is coming from GPS or CV
 # remoteInput it a 4 element 0/1 column vector corresponding to forward, backward, left, right buttons
 # is auto is 0 if remote, 1 if autonomous, determined from button status on remote
@@ -26,18 +27,24 @@ def control(autoCommand, remoteInput, isAuto):
     else:
         return autoCommand
 
+
+def toggle(current):
+    if current == 1:
+        current = 0
+    else:
+        current = 1
+
+
 def autonomousSteering(currentAngle, desiredAngle, thetaDot, thetaIntegral):
     return
 
-controlString = [0,0,0,0,0,0,0,0,0] # 9 buttons from remote
-autoCommand = (0,0) # (s, t) from autonomous algorithm
-isAuto = 0 # 0 if remote control, 1 if auto
-command = (0,0) # final (s, t) for output to boat
+
+controlString = [0, 0, 0, 0, 0, 0, 0, 0, 0]  # 9 buttons from remote
+autoCommand = (0, 0)  # (s, t) from autonomous algorithm
+isAuto = 0  # 0 if remote control, 1 if auto
+command = (0, 0)  # final (s, t) for output to boat
 
 if controlString[-1] == 1:
-    if isAuto == 0:
-        isAuto = 1
-    else:
-        isAuto = 0
-    
+    toggle(isAuto)
+
 command = control(autoCommand, controlString[0:7], isAuto)
