@@ -28,3 +28,16 @@ def control(autoCommand, remoteInput, isAuto):
 
 def autonomousSteering(currentAngle, desiredAngle, thetaDot, thetaIntegral):
     return
+
+controlString = [0,0,0,0,0,0,0,0,0] # 9 buttons from remote
+autoCommand = (0,0) # (s, t) from autonomous algorithm
+isAuto = 0 # 0 if remote control, 1 if auto
+command = (0,0) # final (s, t) for output to boat
+
+if controlString[-1] == 1:
+    if isAuto == 0:
+        isAuto = 1
+    else:
+        isAuto = 0
+    
+command = control(autoCommand, controlString[0:7], isAuto)
