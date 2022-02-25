@@ -26,8 +26,6 @@ def control(autoCommand, remoteInput, isAuto):
     else:
         return autoCommand
 
-def autonomousSteering(currentAngle, desiredAngle, thetaDot, thetaIntegral):
-    return
 
 controlString = [0,0,0,0,0,0,0,0,0] # 9 buttons from remote
 autoCommand = (0,0) # (s, t) from autonomous algorithm
