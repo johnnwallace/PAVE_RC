@@ -37,10 +37,6 @@ def toggle(current):
         current = 1
 
 
-def autonomousSteering(currentAngle, desiredAngle, thetaDot, thetaIntegral):
-    return
-
-
 controlString = [0, 0, 0, 0, 0, 0, 0, 0, 0]  # 9 buttons from remote
 autoCommand = (0, 0)  # (s, t) from autonomous algorithm
 isAuto = 0  # 0 if remote control, 1 if auto
