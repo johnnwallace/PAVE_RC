@@ -7,9 +7,11 @@ import numpy as np
 # HARD forward, backward, left, right
 # Returns two element array (s,t) that is sent to motor to tell it how many degrees to turn and how much throttle to use
 def readRemote(controlString):
+    throttle = 10
+    steering = 10
 
     controlArray = np.array(
-        [[0, 0, -10, 10, 0, 0, -30, 30], [10, -10, 0, 0, 30, -30, 0, 0]]
+        [[0, 0, -throttle, throttle], [steering, -steering, 0, 0]]
     )  # determines contributions to s, t based on each button
 
     command = np.matmul(controlArray, controlString)  # (s, t)
