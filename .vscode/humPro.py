@@ -2,59 +2,57 @@ from machine import Pin, UART
 import random
 import numpy as np
 
-CRESP = Pin(32, Pin.IN)  # CRESP pin (FOR INTERRUPT)
-BE = Pin(27, Pin.IN)  # BE pin (CAN BE READ THROUGH LSTATUS REGESTER IF NEEDED)
-CMD = Pin(31, Pin.OUT)  # CMD pin
-CTS = Pin(29, Pin.IN)  # CTS pin
-txPin = Pin(21, Pin.OUT)  # TX pin
-rxPin = Pin(22, Pin.IN)  # RX pin
-MODE_IND = Pin(24, Pin.IN)  # MODE_IND pin
-button = Pin(9, Pin.IN)  # button pin
-uart = UART(1, 9600, tx=txPin, rx=rxPin)  # initialize UART
 
-# used to configure the HumPRO's settings
-def configure():
-    if MODE_IND.value == 0:
-        CMD.value(0)
+class humPro:
+    def __init__(
+        self, crespPin, bePin, cmdPin, ctsPin, txPin, rxPin, modeIndPin, buttonPin
+    ):
+        self.CRESP = Pin(crespPin, Pin.IN)  # CRESP pin (FOR INTERRUPT)
+        self.BE = Pin(bePin, Pin.IN)  # BE pin (CAN BE READ THROUGH LSTATUS IF NEEDED)
+        self.CMD = Pin(cmdPin, Pin.OUT)  # CMD pin
+        self.CTS = Pin(ctsPin, Pin.IN)  # CTS pin
+        self.TX = Pin(txPin, Pin.OUT)  # TX pin
+        self.RX = Pin(rxPin, Pin.IN)  # RX pin
+        self.MODE_IND = Pin(modeIndPin, Pin.IN)  # MODE_IND pin
+        self.BUTTON = Pin(buttonPin, Pin.IN)  # button pin
 
+        self.uart = UART(1, 9600, tx=self.TX, rx=self.RX)  # initialize UART
 
-# used to transmit data to the HumPRO for RF transmission
-def transmitData(data):
-    if CTS.value == 0:
-        CMD.value(1)
-        uart.write(data + "\n")  # prints a line of data to HumPRO
-        CMD.value(0)
+        # attach interrupt handlers
+        self.CRESP.irq(trigger=Pin.IRQ_RISING, handler=self.readData)
+        self.BUTTON.irq(trigger=Pin.IRQ_RISING, handler=self.transmitRandNumber)
 
-    # hold until HumPRO buffer is empty, indicating all data has been transmitted
-    while True:
-        if BE.value == 1:
-            # ADD EEXFLAG REGISTER SAMPLING HERE --> RETURN TRUE IF NO ERRORS, FALSE IF ERRORS
-            return
+    # used to configure the HumPRO's settings
+    def configure(self):
+        if self.MODE_IND.value == 0:
+            self.CMD.value(0)
 
+    def transmitData(self, data):
+        if self.CTS.value == 0:
+            self.CMD.value(1)
+            self.uart.write(data + "\n")  # prints a line of data to HumPRO
+            self.CMD.value(0)
 
-# used to read data from the uart connection with the HumPRO
-def readData():
-    print(uart.readline())
+        # hold until HumPRO buffer is empty, indicating all data has been transmitted
+        while True:
+            if self.BE.value == 1:
+                # ADD EEXFLAG REGISTER SAMPLING HERE --> RETURN TRUE IF NO ERRORS, FALSE IF ERRORS
+                return
 
+    # used to read data from the uart connection with the HumPRO
+    def readData(self):
+        print(self.uart.readline())
 
-# Generate random 10 digit number
-def generateRandom():
-    num = 0
+    def transmitRandNumber(self):
+        num = self.generateRandom()
+        self.transmitData(num)
+        print(num)
 
-    for i in range(10):
-        num += random.randint(0, 9)
-        num *= 10
+    def generateRandom(self):
+        num = 0
 
-    return num
+        for i in range(10):
+            num += random.randint(0, 9)
+            num * -10
 
-
-# Transmit number to other pico
-def transmitNumber():
-    num = generateRandom()
-    transmitData(num)
-    print(num)
-
-
-# attach interrupt to CRESP so that data is read when it goes high
-CRESP.irq(trigger=Pin.IRQ_RISING, handler=readData)
-button.irq(trigger=Pin.IRQ_RISING, handler=transmitNumber)
+        return num
