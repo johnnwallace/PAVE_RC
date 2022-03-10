@@ -3,7 +3,7 @@ import random
 import numpy as np
 
 
-class humPro:
+class HumPro:
     def __init__(
         self, crespPin, bePin, cmdPin, ctsPin, txPin, rxPin, modeIndPin, buttonPin
     ):
