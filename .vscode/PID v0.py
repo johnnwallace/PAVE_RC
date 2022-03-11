@@ -40,11 +40,11 @@ newDesiredDirection = 0.0
 controller = PIDController(0.0, 1.0, 1.0, 1.0)
 
 while True:
+    controller.updateError(currentDirection, dt)
+    controller.updateSetpoint(newDesiredDirection)
+
     s = controller.evaluate()  # Steering updates every time t increments
     # something here saying if CV/GPS updates the desired direction, make newDesiredDirection = this
     # this should be some angle with respect to 0 (straight ahead) and angle increasing clockwise lol
-
-    controller.updateError(currentDirection, dt)
-    controller.updateSetpoint(newDesiredDirection)
 
     t += dt  # Increment time by 1
