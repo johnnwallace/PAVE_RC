@@ -2,13 +2,12 @@
 import machine
 import numpy as np
 
-# controlString is a 8-element np array with 0/1 corresponding to unpressed/pressed for the 4 pad buttons and 4 circle buttons
-# SOFT forward, backward, left, right
-# HARD forward, backward, left, right
+# controlString is a 9-element np array:
+# forward, backward, left, right, power, ..., ..., ..., ...
 # Returns two element array (s,t) that is sent to motor to tell it how many degrees to turn and how much throttle to use
 def readRemote(controlString):
-    throttle = 10
-    steering = 10
+    throttle = 10 + 20 * controlString[5] # more powerful if power button is pressed
+    steering = 10 + 20 * controlString[5] # more powerful if power button is pressed
 
     controlArray = np.array(
         [[0, 0, -throttle, throttle], [steering, -steering, 0, 0]]
@@ -42,6 +41,7 @@ autoCommand = (0, 0)  # (s, t) from autonomous algorithm
 isAuto = 0  # 0 if remote control, 1 if auto
 command = (0, 0)  # final (s, t) for output to boat
 
+# toggle rc control if button is pressed
 if controlString[-1] == 1:
     toggle(isAuto)
 
