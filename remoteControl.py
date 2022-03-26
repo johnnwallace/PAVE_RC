@@ -6,8 +6,8 @@ import numpy as np
 # forward, backward, left, right, power, ..., ..., ..., ...
 # Returns two element array (s,t) that is sent to motor to tell it how many degrees to turn and how much throttle to use
 def readRemote(controlString):
-    throttle = 10 + 20 * controlString[5] # more powerful if power button is pressed
-    steering = 10 + 20 * controlString[5] # more powerful if power button is pressed
+    throttle = 10 + 20 * controlString[5]  # more powerful if power button is pressed
+    steering = 10 + 20 * controlString[5]  # more powerful if power button is pressed
 
     controlArray = np.array(
         [[0, 0, -throttle, throttle], [steering, -steering, 0, 0]]
