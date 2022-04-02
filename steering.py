@@ -11,10 +11,10 @@ class PIDController:
         self.integralError = self.lastError = 0
         self.maxTurnSpeed = maxTurnSpeed
         self.dt = dt
-
+    
     def updateError(self, currentState):  # update error and setpoint values
         self.error = self.setPoint - currentState  # get error
-        self.integralError += self.error * dt  # get cumulative error
+        self.integralError += self.error * self.dt  # get cumulative error
         self.derivativeError = (
             self.error - self.lastError
         ) / dt  # get derivative of error
@@ -24,12 +24,13 @@ class PIDController:
     def updateSetpoint(self, newSetPoint):
         self.setPoint = newSetPoint
 
-    def evaluate(self):  # return command value
-        return (
-            self.Kp * self.error
-            + self.Ki * self.integralError
-            + self.Kd * self.derivativeError
-        )
+    def evaluate(self, currentState):  # return command value
+        correction = self.Kp * self.error
+        + self.Ki * self.integralError
+        + self.Kd * self.derivativeError
+        if correction > (maxTurnSpeed * dt):
+            return correction
+        return (np.sign(self.setPoint - currentState) * maxTurnSpeed*dt)
 
 
 # global variables
