@@ -2,14 +2,17 @@ import numpy as np
 
 
 class PIDController:
-    def __init__(self, setPoint, Kp, Ki, Kd):
+    #MaxTurnSpeed is fastest turn speed in degrees/s, #dt is timestep in s
+    def __init__(self, setPoint, Kp, Ki, Kd, maxTurnSpeed, dt):
         self.setPoint = setPoint
         self.Kp = Kp
         self.Ki = Ki
         self.Kd = Kd
         self.integralError = self.lastError = 0
+        self.maxTurnSpeed = maxTurnSpeed
+        self.dt = dt
 
-    def updateError(self, currentState, dt):  # update error and setpoint values
+    def updateError(self, currentState):  # update error and setpoint values
         self.error = self.setPoint - currentState  # get error
         self.integralError += self.error * dt  # get cumulative error
         self.derivativeError = (
@@ -31,16 +34,17 @@ class PIDController:
 
 # global variables
 t = 0
-dt = 1
+dt = 0.05
+maxTurnSpeed = 30
 startTime = 0
 currentDirection = 0.0
 desiredDirection = 0.0
 newDesiredDirection = 0.0
 
-controller = PIDController(0.0, 1.0, 1.0, 1.0)
+controller = PIDController(0.0, 1.0, 1.0, 1.0, maxTurnSpeed, dt)
 
 while True:
-    controller.updateError(currentDirection, dt)
+    controller.updateError(currentDirection)
     controller.updateSetpoint(newDesiredDirection)
 
     s = controller.evaluate()  # Steering updates every time t increments
