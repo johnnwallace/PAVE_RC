@@ -1,6 +1,7 @@
 import math
 import numpy as np
-from steering import PIDController as PID
+
+from steering import PIDController
 
 # from steering import PIDController as PID
 
@@ -53,24 +54,56 @@ class Circle:
 
         return (xIntersect, yIntersect, radius)
 
-    def getCentripetal(points, velocity):
+    def getCentripetal(
+        points, velocity
+    ):  # get centripetal acceleration from points given a velocity
         radius = Circle.getCircle(points)[2]
         return velocity * velocity / radius
 
+    def getVelo(
+        points, accel
+    ):  # get velocity from points given a centripetal acceleration
+        radius = Circle.getCircle(points)[2]
+        return math.sqrt(accel * radius)
+
 
 class Throttle:
-    def __init__(self, maxLat, maxLon, points, lookAhead, Kp, Ki, Kd):
-        self.maxLat = maxLat
-        self.maxLon = maxLon
+    def __init__(self, maxLat, maxLon, points, lookAheadTime, Kp, Ki, Kd):
+        self.maxLat = maxLat  # maximum lateral acceleration before capsizing
+        self.maxLon = maxLon  # maximum longitudinal acceleration
         self.points = points
-        self.lookAheadDist = lookAhead
+        self.lookAheadTime = lookAheadTime
         self.current = 0
 
         self.controller = PID(0, Kp, Ki, Kd)
 
-    def lookAhead(self):
-        return Circle.getCentripetal()
-    
+    def getAccel(self, velocity):
+        lookAheadDist = velocity * self.lookAheadTime
+
+        return Circle.getCentripetal(
+            self.points[:, lookAheadDist * 10 : lookAheadDist * 10 + 2]
+        )  # multiply lookAheadDist by 10 because path point spacing is 10 cm. This can be changed to a variable in a path class, for example.
+
+    def getMaxVelo(self):
+        lookAheadDist = velocity * self.lookAheadTime
+        return Circle.getVelo(
+            self.points[:, lookAheadDist * 10 : lookAheadDist * 10 + 2]
+        )
+
+    def update(self, accel, velo, dt):
+        actualVelo = (
+            accel * self.lookAheadTime + velo
+        )  # predict velocity at lookahead point
+        desiredVelo = self.getMaxVelo(
+            self.maxLat
+        )  # get maximum velocity before capsizing at lookahead distance
+
+        self.controller.updateError(actualVelo, dt)
+        self.controller.updateSetpoint(desiredVelo)
+
+        return self.controller.evaluate()
+
+
 points = np.array([(-5, 0, 5), (0, -5, 0)])
 velocity = 10
 

@@ -6,14 +6,19 @@ import numpy as np
 # forward, backward, left, right, power, ..., ..., ..., ...
 # Returns two element array (s,t) that is sent to motor to tell it how many degrees to turn and how much throttle to use
 def readRemote(controlString):
-    throttle = 10 + 20 * controlString[5]  # more powerful if power button is pressed
-    steering = 10 + 20 * controlString[5]  # more powerful if power button is pressed
+    throttle = 10 + 20 * controlString[4]  # more powerful if power button is pressed
+    steering = 10 + 20 * controlString[4]  # more powerful if power button is pressed
+    command = [0, 0]
 
-    controlArray = np.array(
-        [[0, 0, -throttle, throttle], [steering, -steering, 0, 0]]
-    )  # determines contributions to s, t based on each button
+    if controlString[0] == 1:
+        command[0] = throttle
+    elif controlString[1] == 1:
+        command[0] = -throttle
 
-    command = np.matmul(controlArray, controlString)  # (s, t)
+    if controlString[2] == 1:
+        command[1] = steering
+    elif controlString[2] == 2:
+        command[1] = -steering
 
     return command
 
@@ -45,4 +50,4 @@ command = (0, 0)  # final (s, t) for output to boat
 if controlString[-1] == 1:
     toggle(isAuto)
 
-command = control(autoCommand, controlString[0:7], isAuto)
+command = control(autoCommand, controlString[0:4], isAuto)
