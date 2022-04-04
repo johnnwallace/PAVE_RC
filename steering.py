@@ -3,13 +3,13 @@ import numpy as np
 
 class PIDController:
     #MaxTurnSpeed is fastest turn speed in degrees/s, #dt is timestep in s
-    def __init__(self, setPoint, Kp, Ki, Kd, maxTurnSpeed, dt):
+    def __init__(self, setPoint, Kp, Ki, Kd, maxMotorAngle, dt):
         self.setPoint = setPoint
         self.Kp = Kp
         self.Ki = Ki
         self.Kd = Kd
         self.integralError = self.lastError = 0
-        self.maxTurnSpeed = maxTurnSpeed
+        self.maxMotorAngle = maxMotorAngle
         self.dt = dt
     
     def updateError(self, currentState):  # update error and setpoint values
@@ -17,22 +17,22 @@ class PIDController:
         self.integralError += self.error * self.dt  # get cumulative error
         self.derivativeError = (
             self.error - self.lastError
-        ) / dt  # get derivative of error
+        ) / self.dt  # get derivative of error
         self.lastError = self.error  # save current error
 
     # maybe create a ramp to avoid integral windup
     def updateSetpoint(self, newSetPoint):
         self.setPoint = newSetPoint
 
-    def evaluate(self, currentState):  # return command value
-        correction = self.Kp * self.error
+    def evaluate(self):  # return command value
+        motorAngle = self.Kp * self.error
         + self.Ki * self.integralError
         + self.Kd * self.derivativeError
-        if correction > (maxTurnSpeed * dt):
-            return correction
-        return (np.sign(self.setPoint - currentState) * maxTurnSpeed*dt)
+        if np.abs(motorAngle) > (self.maxMotorAngle):
+            return np.sign(motorAngle)*self.maxMotorAngle
+        return (motorAngle)
 
-
+'''
 # global variables
 t = 0
 dt = 0.05
@@ -53,3 +53,4 @@ while True:
     # this should be some angle with respect to 0 (straight ahead) and angle increasing clockwise lol
 
     t += dt  # Increment time by 1
+    '''
