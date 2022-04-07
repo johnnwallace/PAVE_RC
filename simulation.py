@@ -118,14 +118,3 @@ plt.show()
 
 
 #plt.axhline(setpoint,color='red',linestyle='dotted')            # Horizontal line on setpoint angle
-
-
-
-
-
-
-
-
-
-
-
