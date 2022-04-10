@@ -3,13 +3,12 @@ import numpy as np
 
 class PIDController:
     #MaxTurnSpeed is fastest turn speed in degrees/s, #dt is timestep in s
-    def __init__(self, setPoint, Kp, Ki, Kd, maxMotorAngle, dt):
+    def __init__(self, setPoint, Kp, Ki, Kd, dt):
         self.setPoint = setPoint
         self.Kp = Kp
         self.Ki = Ki
         self.Kd = Kd
         self.integralError = self.lastError = 0
-        self.maxMotorAngle = maxMotorAngle
         self.dt = dt
     
     def updateError(self, currentState):  # update error and setpoint values
@@ -19,18 +18,17 @@ class PIDController:
             self.error - self.lastError
         ) / self.dt  # get derivative of error
         self.lastError = self.error  # save current error
+    
+    def getError(self):
+        return self.error
 
     # maybe create a ramp to avoid integral windup
     def updateSetpoint(self, newSetPoint):
         self.setPoint = newSetPoint
 
     def evaluate(self):  # return command value
-        motorAngle = self.Kp * self.error
-        + self.Ki * self.integralError
-        + self.Kd * self.derivativeError
-        if np.abs(motorAngle) > (self.maxMotorAngle):
-            return np.sign(motorAngle)*self.maxMotorAngle
-        return (motorAngle)
+        return self.Kp * self.error + self.Ki * self.integralError + self.Kd * self.derivativeError
+        
 
 '''
 # global variables
