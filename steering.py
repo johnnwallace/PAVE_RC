@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class PIDController:
+class SteeringPID:
     #MaxTurnSpeed is fastest turn speed in degrees/s, #dt is timestep in s
     def __init__(self, setPoint, Kp, Ki, Kd, dt):
         self.setPoint = setPoint
@@ -9,10 +9,23 @@ class PIDController:
         self.Ki = Ki
         self.Kd = Kd
         self.integralError = self.lastError = 0
+        self.error = 0
         self.dt = dt
     
     def updateError(self, currentState):  # update error and setpoint values
-        self.error = self.setPoint - currentState  # get error
+        #Clockwise Error (angle clockwise from currentState to setPoint)
+        cwError = self.setPoint - currentState
+        if (cwError < 0):
+            cwError = 360 + cwError
+        
+        #CCW error (angle ccw from currentState to setPoint)
+        ccwError = 360 - cwError
+
+        if(cwError <= ccwError):
+            self.error = cwError
+        else:
+            self.error = - ccwError
+        
         self.integralError += self.error * self.dt  # get cumulative error
         self.derivativeError = (
             self.error - self.lastError
@@ -23,7 +36,7 @@ class PIDController:
         return self.error
 
     # maybe create a ramp to avoid integral windup
-    def updateSetpoint(self, newSetPoint):
+    def updateSetPoint(self, newSetPoint):
         self.setPoint = newSetPoint
 
     def evaluate(self):  # return command value

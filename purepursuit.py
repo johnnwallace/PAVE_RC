@@ -12,7 +12,7 @@ author: Atsushi Sakai (@Atsushi_twi)
 # reach out to Ken or Zixu for reach-avoid code and ILQR games code
 # implement pure pursuit assuming no obstacles that need to be avoided are in line of vision
 # generate log file (csv?) of GPS coordinates (current)
-# generate log file of ideal path (waypoints) 
+# generate leog file of ideal path (waypoints) 
 # 1.) Read in target GPS coordinates
 # 2.) Adjust distanceTo method for current -> waypoint GPS coordinates for control 
 # Go to Google Maps and get sample loop from race track (log file of waypoints)

@@ -1,10 +1,8 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from steering import PIDController as PID
-
-'''Assumptions made: kp, di, kd, dt, tf, setpoint, v, maxMotorAngle, minTurnRadius, external forces, motor angle stays constant'''
-
+from steering import SteeringPID as PID
+from purepursuit import TargetCourse
 
 
 class Boat:
@@ -57,10 +55,10 @@ class Boat:
         self.theta += dtheta
 
     # Assumption: Motor Angle can only be changed at a constant rate
-    def changeMotorAngle(self, targetAngle):
+    def changeMotorAngle(self, targetAngle, dt):
         change = targetAngle - self.motorAngle
-        if np.abs(change) > motorTurnRate * dt:
-            change = np.sign(change)* motorTurnRate * dt
+        if np.abs(change) > self.motorTurnRate * dt:
+            change = np.sign(change)* self.motorTurnRate * dt
         
         if np.abs(self.motorAngle + change) > self.maxMotorAngle:
             self.motorAngle = np.sign(self.motorAngle)*self.maxMotorAngle
@@ -73,6 +71,46 @@ class Boat:
             self.motorAngle = np.sign(newMotorAngle)*self.maxMotorAngle
         else:
             self.motorAngle = newMotorAngle
+
+class PurePursuit:
+
+    def __init__(self,  x, y, lookahead, heading, wayPoints):
+        self.lookahead = lookahead
+        self.boatX = x
+        self.boatY = y
+        self.boatHeading = heading
+        self.wayPoints = wayPoints
+        self.nextWayPoint = wayPoints[1,:]
+    
+    def updateState(self,  x, y, lookahead, heading, wayPoints):
+        self.lookahead = lookahead
+        self.boatX = x
+        self.boatY = y
+        self.boatHeading = heading
+    
+    def findPath(self):
+        goalPoint = self.findGoalPoint()
+    
+    def findGoalPoint(self):
+        h = 0
+
+#Arrays for graph
+class History:
+    def __init__(self):
+        self.x = []
+        self.y = []
+        self.theta = []
+        self.motorAngle = []
+        self.t = []
+    
+    def append(self, t, boat):
+        self.x.append(boat.getX())
+        self.y.append(boat.getY())
+        self.theta.append(boat.getTheta())
+        self.motorAngle.append(boat.getMotorAngle())
+        self.t.append(t)
+
+
 
 # All in seconds
 t = 0
@@ -97,19 +135,18 @@ init_speed = 3 #m/s (constant velocity for now until auto throttle is added)
 init_angularSpeed = 0 #deg/s
 init_motorAngle = 0 #degrees from longitudinal axis of boat (positive is ccw)
 
-#arrays for graph
-thetaHistory = np.array(init_theta)
-xHistory = np.array(init_x)
-yHistory = np.array(init_y)
-speedHistory = np.array(init_speed)
-errorHistory = np.array(0)
-motorAngleHistory = np.array(init_motorAngle)
 
 boat = Boat(init_x, init_y, init_theta, init_speed, init_angularSpeed, init_motorAngle, \
     maxMotorAngle, motorTurnRate, minTurnRadius)
+history = History()
+history.append(0, boat)
 
 setpoint = 45           # Goal orientation
 controller = PID(setpoint, kp, ki, kd, dt)
+
+# target course
+cx = np.arrange(0, 50, 0.5)
+cy = [np.sin(ix / 5.0) * ix / 2.0 for ix in cx]
 
 t += dt
 while t < tf:

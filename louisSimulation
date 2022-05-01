@@ -1,0 +1,131 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
+from math import atan2
+import math
+from scipy import spatial
+from steering import SteeringPID as PID
+from louis_st import get_full_path, graph_paths, graph_allPaths
+from boat import Boat
+
+
+#Arrays for graph
+class History:
+    def __init__(self):
+        self.x = []
+        self.y = []
+        self.theta = []
+        self.motorAngle = []
+        self.t = []
+        self.error = []
+        self.setPoint = []
+    
+    def append(self, t, boat, controller):
+        self.x.append(boat.getX())
+        self.y.append(boat.getY())
+        self.theta.append(boat.getTheta())
+        self.motorAngle.append(boat.getMotorAngle())
+        self.t.append(t)
+        self.error.append(controller.error)
+        self.setPoint.append(controller.setPoint)
+
+def getTargetOrientation(a, b):
+    dx = b[0] - a[0]
+    dy = b[1] - a[1]
+
+    # quadrant 1
+    if (dx > 0 and dy > 0):
+        return math.atan(dx/dy)
+    
+    # quadrant 2
+    elif(dx < 0 and dy > 0):
+        return math.atan(dx/dy)
+    
+    #quadrant 3
+    elif (dx < 0 and dy < 0):
+        return -(180 - math.atan(dx/dy))
+    
+    #quadrant 4
+    elif (dx > 0 and dy < 0):
+        return 180 + math.atan(dx/dy)
+
+
+
+# All in seconds
+t = 0
+tf = 500
+dt = 0.01
+
+# Assumptions
+maxMotorAngle = 45 #degrees
+motorTurnRate = 45 #degrees/ sec PROB WRONG
+minTurnRadius = 6 #meters (~20 ft)
+
+#TO BE TUNED
+kp = 1
+ki = 0.5
+kd = 2
+
+velocity = 10
+motor_angle = 0
+starting_point = np.array([-500, 0])
+start_angle = np.radians(0)
+
+
+boat = Boat(starting_point[0], starting_point[1], start_angle, \
+    velocity, 0, motor_angle, maxMotorAngle, motorTurnRate, minTurnRadius)
+controller = PID(0, kp, ki, kd, dt)
+
+history = History()
+history.append(t, boat, controller)
+
+buoys = [np.array([1000, 2000]), np.array([-1000, 1000]), np.array([150, 10]), np.array([400, -300])]
+
+
+paths = get_full_path(starting_point, start_angle, velocity, buoys)
+allPaths = []
+for arr in paths:
+    #print(arr)
+    for i in arr:
+        allPaths.append(i)
+
+while t < tf:
+    t += dt
+
+    if t % 0.1 == 0:
+        paths = get_full_path([boat.getX(), boat.getY()], boat.getTheta(), velocity, buoys)
+
+    setPoint = getTargetOrientation([boat.getX(), boat.getY()], paths[1][50])
+    controller.updateSetPoint(setPoint)
+    controller.updateError(boat.getTheta())
+
+    targetAngle = controller.evaluate()
+    boat.changeMotorAngle(-targetAngle, dt)
+    boat.updateStates(dt)
+
+    history.append(t, boat, controller)
+    
+graph_allPaths(allPaths)
+
+#time_fit = np.linspace(0,tf,num = int((tf+dt) / dt))    # Time axis
+#thetaHistory = thetaHistory.transpose()             # Turn thetaHistory into a row vector
+fig, axs = plt.subplots(2,3)
+axs[0,0].plot(history.t, history.theta)
+axs[0,0].set_title('theta vs. t')
+
+axs[1,0].plot(history.x,history.y)
+axs[1,0].set_title('Steering PID Simulation (x,y) Coords')
+
+axs[0,1].plot(history.t,history.setPoint)
+axs[0,1].set_title('setpoint vs t')
+
+axs[1,1].plot(history.t,history.y)
+axs[1,1].set_title('y vs t')
+
+axs[0,2].plot(history.t, history.motorAngle)
+axs[0,2].set_title('motor angle vs. t')
+
+axs[1,2].plot(history.t, history.error)
+axs[1,2].set_title('error vs. t')
+
+plt.show()
